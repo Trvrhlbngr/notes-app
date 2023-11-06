@@ -35,21 +35,30 @@ useEffect(() => {
 });
 
 
-const handleSubmit = (event: React.FormEvent) => {
-  event.preventDefault();
+const handleSubmit = async (event: React.FormEvent) => {event.preventDefault();
 
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/notes",
+      {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          title,
+          content,
+        }),
+    }
+  );
 
-  const newNote: Note = {
-    id: notes.length + 1,
-    title: title, 
-    content: content,
-  };
+  const newNote = await response.json();
 
-  //setNotes array: spread operator passes the previos notes state into the new state in addition to the new note being added. 
   setNotes([newNote, ...notes]);
-  //New state variables clear the form once a note is submitted. 
   setTitle("");
   setContent("");
+
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 const handleNoteClick = (note: Note) => {
@@ -58,25 +67,43 @@ const handleNoteClick = (note: Note) => {
   setContent(note.content);
 };
 
-const handleUpdateNote = (event: React.FormEvent) => {
+const handleUpdateNote = async (event: React.FormEvent) => {
   event.preventDefault();
 
   if(!selectedNote) {
     return;
   };
 
-  const updatedNote: Note = {
-    id: selectedNote.id,
-    title: title,
-    content: content
-  };
 
-  const updatedNotesList = notes.map((note) => (note.id === selectedNote.id ? updatedNote : note));
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/notes/${selectedNote.id}`,
+      {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          title,
+          content,
+        }),
+    }
+  );
 
-  setNotes(updatedNotesList);
-  setTitle("");
-  setContent("");
-  setSelectedNote(null);
+    const updatedNote = await response.json();
+
+    const updatedNotesList = notes.map((note) => (
+      note.id === selectedNote.id 
+        ? updatedNote 
+        : note)
+    );
+
+    setNotes(updatedNotesList);
+    setTitle("");
+    setContent("");
+    setSelectedNote(null);
+
+  } catch (e) {
+    console.log(e)
+  }
 
 };
 
@@ -88,12 +115,26 @@ const handleCancel = () => {
 
 //event.stopPropogation() is important since the delete button is nested within a clickable note. It prevents the delete event from interfering with the click event on the note itself.
 // The filter method is applying to the notes array where it only returns the IDs that do not match the noteId provided.  
-const deleteNote = (event: React.MouseEvent, noteId: number) => {
+const deleteNote = async (
+  event: React.MouseEvent, 
+  noteId: number
+  ) => {
   event.stopPropagation();
 
-  const updatedNotes = notes.filter((note) => note.id !== noteId);
+    try {
+      await fetch(
+        `http://localhost:5000/api/notes/${noteId}`,
+        {
+          method: "DELETE",
+      }
+    );
+    const updatedNotes = notes.filter((note) => note.id !== noteId
+    );
+    setNotes(updatedNotes);
 
-  setNotes(updatedNotes);
+    } catch (e) {
+      console.log(e)
+    };
 };
 
   return (    
