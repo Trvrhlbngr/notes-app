@@ -1,6 +1,8 @@
 // Imports CSS styling
 import "./App.css";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+const App = () => {
 
 type Note = {
   id: number;
@@ -8,23 +10,29 @@ type Note = {
   content: string;
 }
 
-const App = () => {
-
-
-
-  // Dummy notes. 
-const [notes, setNotes] = useState<Note[]>([
-  {
-    id: 1,
-    title: "test note 1",
-    content: "bla bla note1",
-  },
-
-  ]);
-
-// State variables for form inputs
+const [notes, setNotes] = useState<Note[]>([]);
 const [title, setTitle] = useState("");
 const [content, setContent] = useState("");
+const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+
+useEffect(() => {
+  const fetchNotes = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/notes"
+      );
+
+      const notes: Note[] =
+        await response.json();
+
+      setNotes(notes);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  
+  fetchNotes()
+});
 
 
 const handleSubmit = (event: React.FormEvent) => {
@@ -43,8 +51,6 @@ const handleSubmit = (event: React.FormEvent) => {
   setTitle("");
   setContent("");
 };
-
-const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
 const handleNoteClick = (note: Note) => {
   setSelectedNote(note);
@@ -116,17 +122,26 @@ const deleteNote = (event: React.MouseEvent, noteId: number) => {
           <button type="submit">Add Note</button>
         )}
       </form>
-      <div className="notes-grid">
-        {notes.map((note) => (
-        <div key={note.id} className="note-item" onClick={() => handleNoteClick(note)}>
-          <div className="notes-header">
-            <button onClick={(event) => deleteNote(event, note.id)}>x</button>
-          </div>
-          <h2>{note.title}</h2>
-          <p>{note.content}</p>
+        <div className="notes-grid">
+          {notes.map((note) => (
+            <div 
+              key={note.id} 
+              className="note-item" 
+              onClick={() => handleNoteClick(note)}
+            >
+              <div className="notes-header">
+                <button 
+                  onClick={(event) => 
+                    deleteNote(event, note.id)}
+                    >
+                      x
+                    </button>
+              </div>
+              <h2>{note.title}</h2>
+              <p>{note.content}</p>
+            </div>
+          ))}
         </div>
-        ))}
-      </div>
     </div>
   );
 };
