@@ -80,6 +80,16 @@ const handleCancel = () => {
   setSelectedNote(null);
 };
 
+//event.stopPropogation() is important since the delete button is nested within a clickable note. It prevents the delete event from interfering with the click event on the note itself.
+// The filter method is applying to the notes array where it only returns the IDs that do not match the noteId provided.  
+const deleteNote = (event: React.MouseEvent, noteId: number) => {
+  event.stopPropagation();
+
+  const updatedNotes = notes.filter((note) => note.id !== noteId);
+
+  setNotes(updatedNotes);
+};
+
   return (    
     /*app-containfer contains all of the UI elements for the app*/
     <div className="app-container">
@@ -110,7 +120,7 @@ const handleCancel = () => {
         {notes.map((note) => (
         <div key={note.id} className="note-item" onClick={() => handleNoteClick(note)}>
           <div className="notes-header">
-            <button>x</button>
+            <button onClick={(event) => deleteNote(event, note.id)}>x</button>
           </div>
           <h2>{note.title}</h2>
           <p>{note.content}</p>
